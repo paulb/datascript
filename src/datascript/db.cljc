@@ -927,6 +927,13 @@
                   {} schema)]
     (assoc rschema :db/attrTuples (attr-tuples schema rschema))))
 
+(def ^:private allowed-value-types (atom #{:db.type/ref :db.type/tuple}))
+
+(defn configure-value-types
+  "Extend allowed value types. Provided types are added to the defaults."
+  [value-types]
+  (swap! allowed-value-types into value-types))
+
 (defn- validate-schema-key [a k v expected]
   (when-not (or (nil? v)
               (contains? expected v))
@@ -949,7 +956,7 @@
            :key       :db/isComponent})))
 
     (validate-schema-key a :db/unique (:db/unique kv) #{:db.unique/value :db.unique/identity})
-    (validate-schema-key a :db/valueType (:db/valueType kv) #{:db.type/ref :db.type/tuple})
+    (validate-schema-key a :db/valueType (:db/valueType kv) @allowed-value-types)
     (validate-schema-key a :db/cardinality (:db/cardinality kv) #{:db.cardinality/one :db.cardinality/many})
 
     ;; tuple should have exactly one of tupleAttrs | tupleTypes | tupleType
